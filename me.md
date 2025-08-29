@@ -1,108 +1,69 @@
-## ✅ Monitoring & Observability Checklist for Stibo STEP
+# 📌 Monitoring & Observability Principles (Generic)
 
-### 1. **Infrastructure Monitoring (Azure VMs, OS, DB, Network)**
+### 1. **End-to-End Visibility**
 
-* [ ] **CPU, memory, disk utilization** of app & DB servers.
-* [ ] **Disk I/O, network I/O, latency** (especially between app servers and DB servers).
-* [ ] **VM availability & uptime** (Azure Monitor / Splunk integration).
-* [ ] **Azure resource metrics** (VM health, storage performance, network bandwidth).
-* [ ] **DB monitoring** (Oracle/SQL Server/Postgres depending on STEP setup):
-
-  * Query response times.
-  * Slow queries / locks.
-  * Connection pool usage.
-  * Backup success/failure.
-  * Transaction log growth.
+* Cover all layers: **infrastructure, OS, runtime, database, application, integrations, and business processes**.
+* Avoid blind spots by ensuring each layer is observable.
 
 ---
 
-### 2. **Application Server Monitoring (STEP App Servers)**
+### 2. **Business Relevance**
 
-* [ ] **JVM monitoring** (heap usage, garbage collection times, thread counts, stuck threads).
-* [ ] **STEP process monitoring**:
-
-  * OIEP (Outbound Integration Endpoints) throughput & queue sizes.
-  * Background job execution times (imports, exports, BGP, workflows).
-  * Number of worker threads active vs idle.
-  * Job failures / retries.
-* [ ] **Service availability**:
-
-  * STEP web UI.
-  * STEP APIs.
-  * Scheduler processes.
+* Monitoring should reflect **business outcomes**, not just technical health.
+* Example: “Orders processed per hour” is more meaningful than just “CPU utilization”.
 
 ---
 
-### 3. **Application-Level Observability**
+### 3. **Proactive Detection**
 
-* [ ] **Custom metrics / logs** pushed to Splunk:
-
-  * Import/export success vs failure counts.
-  * Time taken for imports/exports.
-  * Workflow step completion times.
-  * Failed object processing logs.
-* [ ] **Business process KPIs**:
-
-  * Number of new products created daily.
-  * Failed validations.
-  * Objects stuck in workflow.
-* [ ] **User activity monitoring**:
-
-  * Login success/failures.
-  * Concurrent sessions.
-  * API call volumes by integration.
+* Set thresholds and anomaly detection to **catch issues early**, before they impact users.
+* Example: Alert on growing queue backlog before it causes service delays.
 
 ---
 
-### 4. **Integration Monitoring**
+### 4. **Signal-to-Noise Balance**
 
-* [ ] **Inbound integrations**:
-
-  * File arrival SLA monitoring (Azure Blob/FTP/SFTP).
-  * Parsing & validation errors.
-* [ ] **Outbound integrations**:
-
-  * API call failures (HTTP codes, latency).
-  * Queues filling up (MQ, Kafka, Azure Service Bus if used).
-  * Downstream acknowledgements missing.
-* [ ] **Third-party systems availability** (ERP, DAM, eCommerce).
+* Collect **useful, not excessive** data.
+* Reduce alert fatigue by defining **severity levels** (Critical, High, Warning, Info).
 
 ---
 
-### 5. **Logging & Alerting Strategy**
+### 5. **Correlation & Context**
 
-* [ ] **Standard log levels** (INFO, WARN, ERROR) consistently applied in STEP.
-* [ ] **Centralized logging** (Splunk collecting from STEP app logs, DB logs, integration logs).
-* [ ] **Correlation IDs** across transactions to trace a product lifecycle across systems.
-* [ ] **Threshold-based alerts**:
-
-  * High JVM heap usage.
-  * Queue backlog beyond threshold.
-  * Failed jobs > X in Y minutes.
-* [ ] **Anomaly detection** (using Splunk ITSI or Azure Monitor insights).
+* Link metrics, logs, and traces to provide **context across systems**.
+* Use transaction IDs or correlation keys to trace workflows end-to-end.
 
 ---
 
-### 6. **Security & Compliance Monitoring**
+### 6. **Actionable Alerts**
 
-* [ ] Failed login attempts / brute force.
-* [ ] Unauthorized API access attempts.
-* [ ] Role/permission changes in STEP.
-* [ ] Certificates / SSL expiry.
+* Every alert should have a **clear meaning, owner, and response path**.
+* Avoid generic alerts that lead to confusion or are consistently ignored.
 
 ---
 
-### 7. **Business & End-User Experience Monitoring**
+### 7. **Automation & Self-Healing**
 
-* [ ] Synthetic transactions (log into STEP, run search, open workflow) to monitor end-user response times.
-* [ ] API response times from consumer perspective.
-* [ ] Dashboard for business KPIs (products published, workflows completed, SLA breaches).
+* Automate common recovery actions where possible (restart service, scale resources).
+* Reduce manual effort and improve resilience.
 
 ---
 
-### 8. **Review & Continuous Improvement**
+### 8. **Unified View**
 
-* [ ] Regular review of Splunk dashboards and alerts with application teams.
-* [ ] Post-incident reviews → update monitoring gaps.
-* [ ] Capacity trend analysis (CPU, memory, jobs per day).
-* [ ] Forecasting growth (DB size, product count, workflow volume).
+* Strive for a **single pane of glass** that consolidates infra, app, and business metrics.
+* Prevent siloed monitoring (e.g., infra team sees one thing, app team another).
+
+---
+
+### 9. **Trend Analysis & Capacity Planning**
+
+* Keep historical data for trend analysis.
+* Use it to forecast capacity needs, prevent resource exhaustion, and plan scaling.
+
+---
+
+### 10. **Continuous Improvement**
+
+* After every incident, review what monitoring was missing or delayed.
+* Adjust thresholds, add metrics, and evolve dashboards to keep pace with system and business changes.
