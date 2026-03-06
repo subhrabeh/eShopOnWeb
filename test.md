@@ -56,9 +56,42 @@ The contested pair — Alice Brown [7] ↔ Alice Brown [8] — has identical nam
 
 ---
 
+## Results Without Nickname Mapping
+
+To test resilience, we re-ran all approaches with nickname normalization disabled (Bob stays "Bob", Jon stays "Jon").
+
+| Pair | Records | DOB | Blob | Fuzzy | VecFld | RecLink | ECM | RF | LR |
+|------|---------|-----|------|-------|--------|---------|-----|----|----|
+| 0↔1 | John Smith ↔ Jon Smyth | exact | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ (.74) | ✓ (.87) |
+| 0↔3 | John Smith ↔ John Smith | exact | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ (.92) | ✓ (.91) |
+| 1↔3 | Jon Smyth ↔ John Smith | exact | ✗ | ✓ | ✗ | ✓ | ✓ | ✗ (.10) | ✓ (.84) |
+| 2↔4 | Jane Doe ↔ Janet Doe | exact | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ (.94) | ✓ (.89) |
+| 5↔6 | Bob Johnson ↔ Robert Johnson | exact | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ (.89) | ✓ (.83) |
+| 7↔8 | Alice Brown ↔ Alice Brown | diff | ✗ | ✓ | ✗ | ✗ | ✓ | ✗ (.24) | ✓ (.60) |
+
+| Approach | With Nicknames | Without Nicknames |
+|----------|---------------|-------------------|
+| 1 - TF-IDF Blob | 5 | 3 |
+| 2 - Fuzzy Field | 6 | 6 |
+| 3 - TF-IDF Field | 5 | 3 |
+| 4 - Record Linkage | 5 | 5 |
+| 5 - ECM (unsupervised ML) | 6 | 6 |
+| 6a - Random Forest | 5 | 4 |
+| 6b - Logistic Regression | 6 | 6 |
+
+Without nicknames, unanimous agreement dropped from 5 pairs to just 2 (John Smith ↔ John Smith, Jane Doe ↔ Janet Doe).
+
+Biggest drops: TF-IDF Blob and TF-IDF Field went from 5 to 3 pairs — they rely on character overlap which breaks down when "Bob" ≠ "Robert" and "Jon" ≠ "John". Random Forest also lost a pair (Jon Smyth ↔ John Smith, prob dropped to 0.10).
+
+Most resilient: Fuzzy, ECM, and Logistic Regression all held steady at 6 pairs regardless of nickname mapping. Record Linkage stayed at 5 — Jaro-Winkler still scored Bob↔Robert at 0.841 without any nickname help.
+
+---
+
 ## Key Takeaways
 
-- **Nickname handling matters.** Without a nickname map, only Record Linkage (Jaro-Winkler) and Fuzzy still caught Bob↔Robert. The vector approaches missed it entirely.
-- **DOB is a strong signal but not absolute.** Data entry errors in DOB happen. Approaches that weight DOB too heavily will miss legitimate duplicates.
+- **Nickname handling matters.** Without a nickname map, TF-IDF vector approaches lost 40% of their matches. Fuzzy and ML-based approaches were far more resilient.
+- **DOB is a strong signal but not absolute.** Data entry errors in DOB happen. Approaches that weight DOB too heavily will miss legitimate duplicates (Alice Brown case).
 - **No single approach is best.** A production system should combine multiple signals — use an ensemble or voting strategy where pairs agreed on by majority get auto-merged, and borderline cases go to human review.
-- **ML adds value when you have features, not necessarily labels.** ECM (unsupervised) performed as well as the best rule-based approach without any training labels. Supervised ML matched the consensus it was trained on, with Logistic Regression being slightly more aggressive than Random Forest on edge cases.
+- **ML adds value when you have features, not necessarily labels.** ECM (unsupervised) performed as well as the best rule-based approach without any training labels — and was equally resilient with or without nicknames.
+- **Fuzzy matching is the most consistent rule-based approach.** It caught all 6 pairs in both scenarios, making it a solid baseline for any dedup pipeline.
+- **For production, consider a hybrid:** use Fuzzy or Record Linkage for candidate generation, then ML (Logistic Regression or ECM) for final scoring, with a three-bucket system (auto-merge / manual review / reject).
